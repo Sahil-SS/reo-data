@@ -3,18 +3,23 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { supabaseBrowser } from "@/lib/supabase-browser";
+import Image from "next/image";
 
 export default function BookingForm() {
   // Customer details state
+  // Add this state variable
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [customerDetails, setCustomerDetails] = useState({
     fullName: "",
     fatherHusbandName: "",
     mobileNumber: "",
     email: "",
-    address: "",
     pan: "",
     aadhar: "",
-    idProofNumber: "",
+    address: "",
+    city: "",
+    state: "",
   });
 
   // Property details state
@@ -24,7 +29,7 @@ export default function BookingForm() {
     projectName: "MEGA CITY KOLKATA",
     unitPlotNumber: "",
     area: "",
-    plotSize: "1000 SG. FT.",
+    plotSize: "1000 SQ. FT.",
     ratePerSqFt: "",
     plotNo: "",
   });
@@ -39,6 +44,68 @@ export default function BookingForm() {
     transactionNumber: "",
     bookingAmountPaid: "",
   });
+
+  // Project options for dropdown
+  const projectOptions = [
+    { value: "MEGA CITY KOLKATA", label: "MEGA CITY KOLKATA" },
+    { value: "GREEN VALLEY RESIDENCY", label: "GREEN VALLEY RESIDENCY" },
+    { value: "ROYAL GARDENS", label: "ROYAL GARDENS" },
+    { value: "SKYLINE TOWERS", label: "SKYLINE TOWERS" },
+    { value: "PEACEFUL MEADOWS", label: "PEACEFUL MEADOWS" },
+    { value: "GOLDEN PALMS", label: "GOLDEN PALMS" },
+    { value: "SILVER SPRINGS", label: "SILVER SPRINGS" },
+    { value: "EMERALD HILLS", label: "EMERALD HILLS" },
+    { value: "SAPHIRE COURT", label: "SAPHIRE COURT" },
+    { value: "DIAMOND VILLAS", label: "DIAMOND VILLAS" },
+  ];
+
+  const handleFinalSubmit = async () => {
+    if (!termsAccepted) return;
+
+    const payload = {
+      full_name: customerDetails.fullName,
+      father_husband_name: customerDetails.fatherHusbandName,
+      mobile_number: customerDetails.mobileNumber,
+      email: customerDetails.email,
+      pan: customerDetails.pan,
+      aadhar: customerDetails.aadhar,
+      address: customerDetails.address,
+      city: customerDetails.city,
+      state: customerDetails.state,
+
+      project_name: propertyDetails.projectName,
+      project_location: propertyDetails.projectLocation,
+      property_type: propertyDetails.propertyType,
+      plot_size: propertyDetails.plotSize,
+      unit_plot_number: propertyDetails.unitPlotNumber,
+      plot_no: propertyDetails.plotNo,
+      area: Number(propertyDetails.area),
+
+      payment_option: paymentDetails.paymentOption,
+      emi_tenure: paymentDetails.emiTenure,
+      total_property_value: Number(paymentDetails.totalPropertyValue),
+      token_advance: Number(paymentDetails.tokenAdvance),
+      remaining_balance: calculateRemainingBalance(),
+
+      terms_accepted: true,
+    };
+
+    const { data, error } = await supabaseBrowser
+      .from("bookings")
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error) {
+      console.error(error);
+      alert("Booking failed");
+      return;
+    }
+
+    // redirect to payment with bookingId
+    // eslint-disable-next-line react-hooks/immutability
+    window.location.href = `/payment?bookingId=${data.id}`;
+  };
 
   // Calculate remaining balance
   const calculateRemainingBalance = () => {
@@ -55,17 +122,37 @@ export default function BookingForm() {
       setPropertyDetails({ ...propertyDetails, [field]: value });
     } else if (section === "payment") {
       const updated = { ...paymentDetails, [field]: value };
-      
+
       // Auto-calculate total value if rate and area are provided
       if (field === "ratePerSqFt" || field === "area") {
-        const rate = field === "ratePerSqFt" ? value : paymentDetails.ratePerSqFt;
+        const rate =
+          field === "ratePerSqFt" ? value : paymentDetails.ratePerSqFt;
         const area = field === "area" ? value : propertyDetails.area;
         if (rate && area) {
-          updated.totalPropertyValue = (parseFloat(rate) * parseFloat(area)).toString();
+          updated.totalPropertyValue = (
+            parseFloat(rate) * parseFloat(area)
+          ).toString();
         }
       }
       setPaymentDetails(updated);
     }
+  };
+
+  // Validation functions
+  const validateMobileNumber = (value) => {
+    return /^[0-9]{10}$/.test(value);
+  };
+
+  const validateEmail = (value) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  };
+
+  const validatePAN = (value) => {
+    return /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(value);
+  };
+
+  const validateAadhar = (value) => {
+    return /^[0-9]{12}$/.test(value);
   };
 
   // Handle form submission
@@ -76,25 +163,27 @@ export default function BookingForm() {
       customerDetails,
       propertyDetails,
       paymentDetails,
-      remainingBalance: calculateRemainingBalance()
+      remainingBalance: calculateRemainingBalance(),
     });
-    // alert("Form submitted successfully! Redirecting to payment...");
+    alert("Form submitted successfully! Redirecting to payment...");
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8 px-4">
+    <div className="min-h-screen bg-white py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Ilfeo</h1>
-          <h2 className="text-2xl font-semibold text-blue-700 mb-1">
+          {/* <h1 className="text-4xl font-bold text-gray-800 mb-2">Ilfeo</h1> */}
+          <Image src="/logo.jpg" alt="REO Logo" width={150} height={150} className="mx-auto mb-2" />
+          <h2 className="text-2xl font-semibold text-[#db071d] mb-1">
             REAL ESTATES OPPORTUNITY
           </h2>
           <h3 className="text-xl font-bold text-gray-700">
-            PLOT SALE / CUSTOMER BOOKING FORM
+            CUSTOMER BOOKING FORM
           </h3>
           <p className="text-gray-600 mt-2">
-            Office Address: RDB Boulevard, 8th Floor, EP & GP Complex, Salt Lake, Kolkata – 700 091
+            Office Address: RDB Boulevard, 8th Floor, EP & GP Complex, Salt
+            Lake, Kolkata – 700 091
           </p>
         </div>
 
@@ -106,69 +195,108 @@ export default function BookingForm() {
               <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center border-b pb-2">
                 Project Details
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6">
                 <div>
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Project Name
+                        Select Project *
                       </label>
-                      <input
-                        type="text"
-                        value={propertyDetails.projectName}
-                        onChange={(e) => handleInputChange("property", "projectName", e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
-                        placeholder="Enter project name"
-                      />
+                      <div className="relative">
+                        <select
+                          value={propertyDetails.projectName}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "property",
+                              "projectName",
+                              e.target.value
+                            )
+                          }
+                          required
+                          className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 bg-white appearance-none cursor-pointer"
+                        >
+                          <option value="">Select a project...</option>
+                          {projectOptions.map((project) => (
+                            <option key={project.value} value={project.value}>
+                              {project.label}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                          <svg
+                            className="fill-current h-4 w-4"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                          </svg>
+                        </div>
+                      </div>
                     </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Property Type *
+                        </label>
+                        <select
+                          value={propertyDetails.propertyType}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "property",
+                              "propertyType",
+                              e.target.value
+                            )
+                          }
+                          required
+                          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 bg-white"
+                        >
+                          <option value="Plot">Plot</option>
+                          <option value="Flat">Flat</option>
+                          <option value="Duplex">Duplex</option>
+                          <option value="Villa">Villa</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Plot Size *
+                        </label>
+                        <input
+                          type="text"
+                          value={propertyDetails.plotSize}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "property",
+                              "plotSize",
+                              e.target.value
+                            )
+                          }
+                          required
+                          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
+                          placeholder="Enter plot size"
+                        />
+                      </div>
+                    </div>
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Plot Size
-                      </label>
-                      <input
-                        type="text"
-                        value={propertyDetails.plotSize}
-                        onChange={(e) => handleInputChange("property", "plotSize", e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
-                        placeholder="Enter plot size"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Property Type
-                      </label>
-                      <select
-                        value={propertyDetails.propertyType}
-                        onChange={(e) => handleInputChange("property", "propertyType", e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 bg-white"
-                      >
-                        <option value="Plot">Plot</option>
-                        <option value="Flat">Flat</option>
-                        <option value="Duplex">Duplex</option>
-                        <option value="Villa">Villa</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Location
+                        Location *
                       </label>
                       <input
                         type="text"
                         value={propertyDetails.projectLocation}
-                        onChange={(e) => handleInputChange("property", "projectLocation", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "property",
+                            "projectLocation",
+                            e.target.value
+                          )
+                        }
+                        required
                         className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
                         placeholder="Enter project location"
                       />
                     </div>
-                  </div>
-                </div>
-                <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-400 p-4 rounded-lg">
-                  <div className="text-center text-gray-500">
-                    <svg className="w-16 h-16 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                    </svg>
-                    <p className="text-sm">PHOTO UPLOAD AREA</p>
-                    <p className="text-xs mt-1">PHAISEDIA SEES PINCOPT (225)9403</p>
                   </div>
                 </div>
               </div>
@@ -183,12 +311,19 @@ export default function BookingForm() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Full Name
+                      Full Name *
                     </label>
                     <input
                       type="text"
                       value={customerDetails.fullName}
-                      onChange={(e) => handleInputChange("customer", "fullName", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "customer",
+                          "fullName",
+                          e.target.value
+                        )
+                      }
+                      required
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
                       placeholder="Enter full name"
                     />
@@ -200,84 +335,183 @@ export default function BookingForm() {
                     <input
                       type="text"
                       value={customerDetails.fatherHusbandName}
-                      onChange={(e) => handleInputChange("customer", "fatherHusbandName", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "customer",
+                          "fatherHusbandName",
+                          e.target.value
+                        )
+                      }
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
                       placeholder="Enter father/husband name"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Address
-                    </label>
-                    <textarea
-                      value={customerDetails.address}
-                      onChange={(e) => handleInputChange("customer", "address", e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
-                      rows="2"
-                      placeholder="Enter address"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Mobile Number
+                      Mobile Number *
+                      {customerDetails.mobileNumber &&
+                        !validateMobileNumber(customerDetails.mobileNumber) && (
+                          <span className="text-red-500 text-xs ml-2">
+                            Must be 10 digits
+                          </span>
+                        )}
                     </label>
                     <input
                       type="tel"
                       value={customerDetails.mobileNumber}
-                      onChange={(e) => handleInputChange("customer", "mobileNumber", e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
-                      placeholder="Enter mobile number"
+                      onChange={(e) =>
+                        handleInputChange(
+                          "customer",
+                          "mobileNumber",
+                          e.target.value
+                        )
+                      }
+                      required
+                      className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400 ${
+                        customerDetails.mobileNumber &&
+                        !validateMobileNumber(customerDetails.mobileNumber)
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
+                      placeholder="Enter 10-digit mobile number"
+                      maxLength="10"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email ID *
+                      {customerDetails.email &&
+                        !validateEmail(customerDetails.email) && (
+                          <span className="text-red-500 text-xs ml-2">
+                            Invalid email
+                          </span>
+                        )}
+                    </label>
+                    <input
+                      type="email"
+                      value={customerDetails.email}
+                      onChange={(e) =>
+                        handleInputChange("customer", "email", e.target.value)
+                      }
+                      required
+                      className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400 ${
+                        customerDetails.email &&
+                        !validateEmail(customerDetails.email)
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
+                      placeholder="Enter email address"
                     />
                   </div>
                 </div>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email ID
-                    </label>
-                    <input
-                      type="email"
-                      value={customerDetails.email}
-                      onChange={(e) => handleInputChange("customer", "email", e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
-                      placeholder="Enter email address"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      PAN Number
+                      PAN Number *
+                      {customerDetails.pan &&
+                        !validatePAN(customerDetails.pan) && (
+                          <span className="text-red-500 text-xs ml-2">
+                            Invalid PAN format
+                          </span>
+                        )}
                     </label>
                     <input
                       type="text"
                       value={customerDetails.pan}
-                      onChange={(e) => handleInputChange("customer", "pan", e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
-                      placeholder="Enter PAN number"
+                      onChange={(e) =>
+                        handleInputChange(
+                          "customer",
+                          "pan",
+                          e.target.value.toUpperCase()
+                        )
+                      }
+                      required
+                      className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400 ${
+                        customerDetails.pan && !validatePAN(customerDetails.pan)
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
+                      placeholder="Enter PAN (e.g., ABCDE1234F)"
+                      maxLength="10"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Aadhar Card Number
+                      Aadhar Card Number *
+                      {customerDetails.aadhar &&
+                        !validateAadhar(customerDetails.aadhar) && (
+                          <span className="text-red-500 text-xs ml-2">
+                            Must be 12 digits
+                          </span>
+                        )}
                     </label>
                     <input
                       type="text"
                       value={customerDetails.aadhar}
-                      onChange={(e) => handleInputChange("customer", "aadhar", e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
-                      placeholder="Enter Aadhar number"
+                      onChange={(e) =>
+                        handleInputChange(
+                          "customer",
+                          "aadhar",
+                          e.target.value.replace(/\D/g, "")
+                        )
+                      }
+                      required
+                      className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400 ${
+                        customerDetails.aadhar &&
+                        !validateAadhar(customerDetails.aadhar)
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
+                      placeholder="Enter 12-digit Aadhar number"
+                      maxLength="12"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      ID Proof & Number
+                      Address *
                     </label>
-                    <input
-                      type="text"
-                      value={customerDetails.idProofNumber}
-                      onChange={(e) => handleInputChange("customer", "idProofNumber", e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
-                      placeholder="e.g., Passport, Driver's License"
+                    <textarea
+                      value={customerDetails.address}
+                      onChange={(e) =>
+                        handleInputChange("customer", "address", e.target.value)
+                      }
+                      required
+                      className="w-full px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
+                      rows="2"
+                      placeholder="Enter street address"
                     />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 ">
+                        City *
+                      </label>
+                      <input
+                        type="text"
+                        value={customerDetails.city}
+                        onChange={(e) =>
+                          handleInputChange("customer", "city", e.target.value)
+                        }
+                        required
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
+                        placeholder="City"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        State *
+                      </label>
+                      <input
+                        type="text"
+                        value={customerDetails.state}
+                        onChange={(e) =>
+                          handleInputChange("customer", "state", e.target.value)
+                        }
+                        required
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
+                        placeholder="State"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -292,24 +526,34 @@ export default function BookingForm() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Unit / Plot Number
+                      Unit / Plot Number *
                     </label>
                     <input
                       type="text"
                       value={propertyDetails.unitPlotNumber}
-                      onChange={(e) => handleInputChange("property", "unitPlotNumber", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "property",
+                          "unitPlotNumber",
+                          e.target.value
+                        )
+                      }
+                      required
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
                       placeholder="Enter unit/plot number"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Area (sq.ft / sq.yd)
+                      Area (sq.ft / sq.yd) *
                     </label>
                     <input
                       type="number"
                       value={propertyDetails.area}
-                      onChange={(e) => handleInputChange("property", "area", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("property", "area", e.target.value)
+                      }
+                      required
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
                       placeholder="Enter area"
                     />
@@ -318,25 +562,35 @@ export default function BookingForm() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Plot No.
+                      Plot No. *
                     </label>
                     <input
                       type="text"
                       value={propertyDetails.plotNo}
-                      onChange={(e) => handleInputChange("property", "plotNo", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("property", "plotNo", e.target.value)
+                      }
+                      required
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
                       placeholder="Enter plot number"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Rate per SG.FT.
+                      Rate per SQ.FT. *
                     </label>
                     <input
                       type="number"
                       value={paymentDetails.ratePerSqFt}
-                      onChange={(e) => handleInputChange("payment", "ratePerSqFt", e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
+                      onChange={(e) =>
+                        handleInputChange(
+                          "payment",
+                          "ratePerSqFt",
+                          e.target.value
+                        )
+                      }
+                      required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-[#db071d] text-gray-800 placeholder:text-gray-400"
                       placeholder="Enter rate per sq.ft"
                     />
                   </div>
@@ -349,7 +603,7 @@ export default function BookingForm() {
               <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center border-b pb-2">
                 Payment Details
               </h2>
-              
+
               {/* Payment Option Selection */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -362,10 +616,16 @@ export default function BookingForm() {
                       name="paymentOption"
                       value="one-time"
                       checked={paymentDetails.paymentOption === "one-time"}
-                      onChange={(e) => handleInputChange("payment", "paymentOption", e.target.value)}
-                      className="w-4 h-4 text-blue-600"
+                      onChange={(e) =>
+                        handleInputChange(
+                          "payment",
+                          "paymentOption",
+                          e.target.value
+                        )
+                      }
+                      className="w-4 h-4 text-[#db071d]"
                     />
-                    <span className="ml-2">One-Time Payment</span>
+                    <span className="ml-2 text-gray-700">One-Time Payment</span>
                   </label>
                   <label className="flex items-center">
                     <input
@@ -373,13 +633,19 @@ export default function BookingForm() {
                       name="paymentOption"
                       value="emi"
                       checked={paymentDetails.paymentOption === "emi"}
-                      onChange={(e) => handleInputChange("payment", "paymentOption", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "payment",
+                          "paymentOption",
+                          e.target.value
+                        )
+                      }
                       className="w-4 h-4 text-blue-600"
                     />
-                    <span className="ml-2">EMI Payment</span>
+                    <span className="ml-2 text-gray-700">EMI Payment</span>
                   </label>
                 </div>
-                
+
                 {/* EMI Tenure (only shown if EMI selected) */}
                 {paymentDetails.paymentOption === "emi" && (
                   <div className="mt-4">
@@ -388,7 +654,13 @@ export default function BookingForm() {
                     </label>
                     <select
                       value={paymentDetails.emiTenure}
-                      onChange={(e) => handleInputChange("payment", "emiTenure", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "payment",
+                          "emiTenure",
+                          e.target.value
+                        )
+                      }
                       className="w-full md:w-48 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 bg-white"
                     >
                       <option value="24">24 months</option>
@@ -407,7 +679,13 @@ export default function BookingForm() {
                     <input
                       type="number"
                       value={paymentDetails.totalPropertyValue}
-                      onChange={(e) => handleInputChange("payment", "totalPropertyValue", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "payment",
+                          "totalPropertyValue",
+                          e.target.value
+                        )
+                      }
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
                       placeholder="Enter total value"
                     />
@@ -419,7 +697,13 @@ export default function BookingForm() {
                     <input
                       type="number"
                       value={paymentDetails.tokenAdvance}
-                      onChange={(e) => handleInputChange("payment", "tokenAdvance", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "payment",
+                          "tokenAdvance",
+                          e.target.value
+                        )
+                      }
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
                       placeholder="Enter advance amount"
                     />
@@ -437,7 +721,7 @@ export default function BookingForm() {
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <div>
+                  {/* <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Booking Amount Paid (₹)
                     </label>
@@ -448,8 +732,8 @@ export default function BookingForm() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
                       placeholder="Enter booking amount"
                     />
-                  </div>
-                  <div>
+                  </div> */}
+                  {/* <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Payment Mode
                     </label>
@@ -463,8 +747,8 @@ export default function BookingForm() {
                       <option value="Credit Card">Credit Card</option>
                       <option value="Net Banking">Net Banking</option>
                     </select>
-                  </div>
-                  <div>
+                  </div> */}
+                  {/* <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Transaction / Cheque No.
                     </label>
@@ -475,7 +759,7 @@ export default function BookingForm() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
                       placeholder="Enter transaction/cheque number"
                     />
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
@@ -490,11 +774,15 @@ export default function BookingForm() {
                   <input
                     type="checkbox"
                     id="terms"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
                     className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    required
                   />
                   <label htmlFor="terms" className="ml-2 text-gray-700">
-                    I hereby declare that the above information provided by me is true and correct. 
-                    I agree to all terms and conditions of the {propertyDetails.projectName} project.
+                    I certify that all information provided in this application
+                    is correct. By submitting this form, I formally accept the
+                    terms and conditions associated with the Reo Project
                   </label>
                 </div>
                 <div className="flex items-start">
@@ -505,12 +793,12 @@ export default function BookingForm() {
                     Plot switching options available.
                   </span>
                 </div>
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                {/* <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Customer Signature
                     </label>
-                    <div className="w-64 border-b-2 border-gray-800 h-8"></div>
+                    <div className="w-64 border-b-2 border-gray-800 h-8">Input Name </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -518,31 +806,28 @@ export default function BookingForm() {
                     </label>
                     <div className="w-48 border-b-2 border-gray-800 h-8"></div>
                   </div>
-                </div>
-                <div className="text-center text-gray-500 text-sm mt-4">
-                  <p>PLASÉ PASTE PASSPORT SEE PHOTO (2022 INCH)</p>
-                </div>
+                </div> */}
               </div>
             </div>
 
             {/* Submit Button */}
             <div className="text-center">
-              <Link href="/payment">
-                <button
-                  type="button"
-                  className="px-12 py-4 bg-gradient-to-r from-blue-600 to-blue-800 text-white font-bold text-lg rounded-lg hover:from-blue-700 hover:to-blue-900 transition-all duration-300 shadow-lg hover:shadow-xl"
-                >
-                  SUBMIT & PROCEED TO PAYMENT
-                </button>
-              </Link>
+              <button
+                type="button"
+                disabled={!termsAccepted}
+                onClick={handleFinalSubmit}
+                className={`px-12 py-4 text-white font-bold text-lg rounded-lg transition-all duration-300 shadow-lg ${
+                  termsAccepted
+                    ? "bg-gradient-to-r from-[#db071d] to-[#db071d] hover:shadow-xl cursor-pointer"
+                    : "bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed opacity-70"
+                }`}
+              >
+                {termsAccepted
+                  ? "SUBMIT & PROCEED TO PAYMENT"
+                  : "ACCEPT TERMS TO PROCEED"}
+              </button>
             </div>
           </form>
-        </div>
-
-        {/* Footer Note */}
-        <div className="text-center text-gray-600 text-sm">
-          <p>This form is designed to resemble an A4 document for real estate booking purposes.</p>
-          <p className="mt-1">After submission, you will be redirected to the payment gateway.</p>
         </div>
       </div>
     </div>

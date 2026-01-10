@@ -4,12 +4,18 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import { supabaseBrowser } from "@/lib/supabase-browser";
+
 
 export default function PaymentClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  // const searchParams = useSearchParams();
+const bookingId = searchParams.get("bookingId");
+
   
   const bookingDetails = {
+    // eslint-disable-next-line react-hooks/purity
     bookingId: searchParams.get("bookingId") || "BK" + Math.floor(Math.random() * 10000),
     propertyType: searchParams.get("propertyType") || "Plot",
     projectName: searchParams.get("projectName") || "MEGA CITY KOLKATA",
@@ -36,36 +42,56 @@ export default function PaymentClient() {
     setPaymentForm({ ...paymentForm, [name]: value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+  if (!bookingId) {
+    alert("Invalid booking. Please start again.");
+    return;
+  }
 
-      setPopup({
-        type: "success",
-        message: `Payment Successful!\n\nBooking ID: ${bookingDetails.bookingId}\nTransaction ID: ${paymentForm.transactionId}\nAmount: ₹${paymentForm.amountPaid}\n\nOur team will contact you within 24 hours.`,
-      });
+  setIsSubmitting(true);
 
-      setIsPaymentSuccess(true);
-      setTimeout(() => setPopup(null), 3000);
-    } catch {
-      setPopup({
-        type: "error",
-        message: "Payment submission failed. Please try again.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const { error } = await supabaseBrowser
+    .from("bookings")
+    .update({
+      amount_paid: Number(paymentForm.amountPaid),
+      transaction_id: paymentForm.transactionId,
+      payment_method: paymentForm.paymentMethod || "upi",
+      payment_status: "success",
+    })
+    .eq("id", bookingId);
 
-  const paymentMethods = [
-    { id: "google_pay", name: "Google Pay" },
-    { id: "phonepe", name: "PhonePe" },
-    { id: "paytm", name: "Paytm" },
-    { id: "bank_transfer", name: "Bank Transfer" },
-  ];
+  if (error) {
+    console.error(error);
+    setPopup({
+      type: "error",
+      message: "Payment update failed. Please contact support.",
+    });
+    setIsSubmitting(false);
+    return;
+  }
+
+  setPopup({
+    type: "success",
+    message:
+      `Payment Successful!\n\n` +
+      `Transaction ID: ${paymentForm.transactionId}\n` +
+      `Amount: ₹${paymentForm.amountPaid}\n\n` +
+      `Our team will contact you within 24 hours.`,
+  });
+
+  setIsPaymentSuccess(true);
+  setIsSubmitting(false);
+};
+
+
+  // const paymentMethods = [
+  //   { id: "google_pay", name: "Google Pay" },
+  //   { id: "phonepe", name: "PhonePe" },
+  //   { id: "paytm", name: "Paytm" },
+  //   { id: "bank_transfer", name: "Bank Transfer" },
+  // ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8 px-4">
@@ -77,7 +103,7 @@ export default function PaymentClient() {
           className="text-center mb-8 bg-white rounded-xl shadow-lg p-6"
         >
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Complete Your Booking Payment</h1>
-          <div className="flex flex-wrap justify-center gap-4 mt-4">
+          {/* <div className="flex flex-wrap justify-center gap-4 mt-4">
             <div className="bg-blue-50 px-4 py-2 rounded-lg">
               <span className="text-sm text-gray-600">Booking ID:</span>
               <span className="ml-2 font-semibold text-blue-700">{bookingDetails.bookingId}</span>
@@ -96,7 +122,7 @@ export default function PaymentClient() {
                 <span className="ml-2 font-semibold text-yellow-700">₹{bookingDetails.advanceAmount}</span>
               </div>
             )}
-          </div>
+          </div> */}
         </motion.div>
 
         {/* Main Payment Container */}
@@ -104,17 +130,17 @@ export default function PaymentClient() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="relative z-10 flex flex-col md:flex-row w-full max-w-5xl rounded-2xl shadow-[0_0_40px_-10px_rgba(59,130,246,0.5)] overflow-hidden bg-white/10 backdrop-blur-xl border border-blue-500/60"
+          className="relative z-10 flex flex-col md:flex-row w-full max-w-5xl rounded-2xl shadow-[0_0_40px_-10px_rgba(59,130,246,0.5)] overflow-hidden bg-white/10 backdrop-blur-xl border border-[#db071d]"
         >
           {/* LEFT SIDE - QR Code */}
-          <div className="md:w-1/2 flex flex-col items-center justify-center bg-gradient-to-b from-blue-600 to-blue-800 p-6 md:p-8 text-white">
-            <h2 className="text-2xl font-bold mb-2 text-yellow-300 text-center">
+          <div className="md:w-1/2 flex flex-col items-center justify-center bg-gradient-to-b from-[#db071d] to-[#db071f] p-6 md:p-8 text-white">
+            {/* <h2 className="text-2xl font-bold mb-2 text-yellow-300 text-center">
               Ilfeo Real Estate
-            </h2>
-            <p className="text-lg font-semibold mb-1">MEGA CITY KOLKATA</p>
+            </h2> */}
+            {/* <p className="text-lg font-semibold mb-1">MEGA CITY KOLKATA</p> */}
             <h3 className="text-xl font-semibold mb-4">Scan & Pay</h3>
 
-            {/* Payment Method Selector */}
+            {/* Payment Method Selector
             <div className="flex flex-wrap gap-2 mb-6 justify-center">
               {paymentMethods.map((method) => (
                 <button
@@ -131,58 +157,40 @@ export default function PaymentClient() {
                   {method.name}
                 </button>
               ))}
-            </div>
+            </div> */}
 
             {/* QR Code Container */}
             <div className="bg-white p-4 rounded-2xl shadow-xl mb-4">
               <div className="relative">
                 {/* Replace with your actual QR code image */}
-                <div className="w-48 h-48 bg-gray-100 flex items-center justify-center rounded-lg">
+                {/* <div className="w-48 h-48 bg-gray-100 flex items-center justify-center rounded-lg">
                   <div className="text-center">
                     <div className="text-4xl mb-2">📱</div>
                     <p className="text-gray-500 text-sm">Google Pay QR Code</p>
                     <p className="text-gray-400 text-xs mt-1">Scan to pay</p>
                   </div>
-                </div>
+                </div> */}
                 
-                {/* In production, use actual QR image:
+                {/* In production, use actual QR image: */}
                 <Image
-                  src="/images/google-pay-qr.jpg"
+                  src="/qr.jpg"
                   alt="Payment QR Code"
                   width={200}
                   height={200}
                   className="rounded-lg"
                 />
-                */}
+               
               </div>
             </div>
 
             {/* Payment Instructions */}
             <div className="text-center space-y-2 max-w-md">
-              <p className="text-sm text-blue-100">
+              <p className="text-sm text-white">
                 <span className="font-semibold">Instructions:</span> Scan QR code using any UPI app
               </p>
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                  <span className="text-lg">1</span>
-                </div>
-                <span className="text-sm">Open Google Pay/PhonePe/Paytm</span>
-              </div>
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                  <span className="text-lg">2</span>
-                </div>
-                <span className="text-sm">Scan QR code or enter UPI ID</span>
-              </div>
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                  <span className="text-lg">3</span>
-                </div>
-                <span className="text-sm">Enter amount and complete payment</span>
-              </div>
             </div>
 
-            <p className="text-xs text-blue-200 mt-4 text-center">
+            <p className="text-xs text-white mt-4 text-center">
               Once payment is completed, fill the form on the right side.
             </p>
           </div>
@@ -193,12 +201,19 @@ export default function PaymentClient() {
               {/* Logo */}
               <div className="flex justify-center mb-6">
                 <div className="text-center">
-                  <h1 className="text-3xl font-bold text-blue-700">Ilfeo</h1>
+                  {/* <h1 className="text-3xl font-bold text-blue-700">Ilfeo</h1> */}
+                  <Image
+                    src="/logo.jpg"
+                    alt="REO Logo"
+                    width={120}
+                    height={120}
+                    className="mx-auto"
+                  />
                   <p className="text-sm text-gray-600">REAL ESTATES OPPORTUNITY</p>
                 </div>
               </div>
 
-              <h3 className="text-2xl font-bold text-center text-blue-600 mb-2">
+              <h3 className="text-2xl font-bold text-center text-[#db071d] mb-2">
                 Payment Details
               </h3>
               <p className="text-center text-gray-600 mb-6">
@@ -222,14 +237,14 @@ export default function PaymentClient() {
                   </p>
                   <button
                     onClick={() => router.push("/")}
-                    className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
+                    className="px-6 py-3 bg-[#db071d] text-white font-semibold rounded-lg transition"
                   >
                     Return to Home
                   </button>
                 </motion.div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
+                  {/* <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Full Name *
                     </label>
@@ -242,9 +257,9 @@ export default function PaymentClient() {
                       className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                       required
                     />
-                  </div>
+                  </div> */}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Mobile Number *
@@ -273,7 +288,7 @@ export default function PaymentClient() {
                         required
                       />
                     </div>
-                  </div>
+                  </div> */}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -306,7 +321,7 @@ export default function PaymentClient() {
                     </div>
                   </div>
 
-                  <div>
+                  {/* <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       UPI ID (Optional)
                     </label>
@@ -318,7 +333,7 @@ export default function PaymentClient() {
                       placeholder="Enter your UPI ID"
                       className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                     />
-                  </div>
+                  </div> */}
 
                   <div className="pt-2">
                     <motion.button
@@ -326,7 +341,7 @@ export default function PaymentClient() {
                       disabled={isSubmitting}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`w-full py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition text-lg ${
+                      className={`w-full py-3.5 bg-gradient-to-r bg-[#db071d] cursor-pointer text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition text-lg ${
                         isSubmitting ? "opacity-50 cursor-not-allowed" : ""
                       }`}
                     >
@@ -347,7 +362,7 @@ export default function PaymentClient() {
               )}
 
               {/* Important Notes */}
-              {!isPaymentSuccess && (
+              {/* {!isPaymentSuccess && (
                 <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <h4 className="font-semibold text-yellow-800 mb-2 flex items-center">
                     <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -362,13 +377,13 @@ export default function PaymentClient() {
                     <li>• Contact support if payment fails</li>
                   </ul>
                 </div>
-              )}
+              )} */}
             </div>
           </div>
         </motion.div>
 
         {/* Payment Methods Info */}
-        <motion.div 
+        {/* <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
@@ -386,7 +401,7 @@ export default function PaymentClient() {
             <h4 className="font-semibold text-gray-800 mb-2">Support</h4>
             <p className="text-sm text-gray-600">Email: payments@ilfeo.com<br />Phone: +91 98765 43210</p>
           </div>
-        </motion.div>
+        </motion.div> */}
       </div>
 
       {/* POPUP */}
