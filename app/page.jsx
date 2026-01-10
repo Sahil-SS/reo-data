@@ -575,7 +575,7 @@ export default function BookingForm() {
                       placeholder="Enter plot number"
                     />
                   </div>
-                  <div>
+                  {/* <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Rate per SQ.FT. *
                     </label>
@@ -593,7 +593,7 @@ export default function BookingForm() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-[#db071d] text-gray-800 placeholder:text-gray-400"
                       placeholder="Enter rate per sq.ft"
                     />
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
