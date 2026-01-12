@@ -26,10 +26,10 @@ export default function BookingForm() {
   const [propertyDetails, setPropertyDetails] = useState({
     propertyType: "Plot",
     projectLocation: "",
-    projectName: "MEGA CITY KOLKATA",
+    projectName: "",
     unitPlotNumber: "",
     area: "",
-    plotSize: "1000 SQ. FT.",
+    plotSize: "",
     ratePerSqFt: "",
     plotNo: "",
   });
@@ -198,7 +198,7 @@ export default function BookingForm() {
               <div className="grid grid-cols-1 gap-6">
                 <div>
                   <div className="space-y-4">
-                    <div>
+                    {/* <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Select Project *
                       </label>
@@ -232,7 +232,7 @@ export default function BookingForm() {
                           </svg>
                         </div>
                       </div>
-                    </div>
+                    </div> */}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -257,7 +257,7 @@ export default function BookingForm() {
                           <option value="Villa">Villa</option>
                         </select>
                       </div>
-                      <div>
+                      {/* <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Plot Size *
                         </label>
@@ -275,7 +275,7 @@ export default function BookingForm() {
                           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
                           placeholder="Enter plot size"
                         />
-                      </div>
+                      </div> */}
                     </div>
 
                     <div>
@@ -518,7 +518,7 @@ export default function BookingForm() {
             </div>
 
             {/* Property Selection */}
-            <div className="border-2 border-gray-800 p-6 rounded-lg">
+            {/* <div className="border-2 border-gray-800 p-6 rounded-lg">
               <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center border-b pb-2">
                 Property Selection
               </h2>
@@ -575,7 +575,7 @@ export default function BookingForm() {
                       placeholder="Enter plot number"
                     />
                   </div>
-                  {/* <div>
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Rate per SQ.FT. *
                     </label>
@@ -593,10 +593,10 @@ export default function BookingForm() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-[#db071d] text-gray-800 placeholder:text-gray-400"
                       placeholder="Enter rate per sq.ft"
                     />
-                  </div> */}
+                  </div>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Payment Details */}
             <div className="border-2 border-gray-800 p-6 rounded-lg">
