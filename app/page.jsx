@@ -58,6 +58,14 @@ export default function BookingForm() {
     { value: "SAPHIRE COURT", label: "SAPHIRE COURT" },
     { value: "DIAMOND VILLAS", label: "DIAMOND VILLAS" },
   ];
+  // Nominee details state
+  const [nomineeDetails, setNomineeDetails] = useState({
+    fullName: "",
+    relationship: "",
+    dob: "",
+    mobileNumber: "",
+    idProofType: "",
+  });
 
   const handleFinalSubmit = async () => {
     if (!termsAccepted) return;
@@ -72,6 +80,12 @@ export default function BookingForm() {
       address: customerDetails.address,
       city: customerDetails.city,
       state: customerDetails.state,
+
+      nominee_full_name: nomineeDetails.fullName,
+      nominee_relationship: nomineeDetails.relationship,
+      nominee_dob: nomineeDetails.dob,
+      nominee_mobile_number: nomineeDetails.mobileNumber,
+      nominee_id_proof_type: nomineeDetails.idProofType,
 
       project_name: propertyDetails.projectName,
       project_location: propertyDetails.projectLocation,
@@ -135,6 +149,8 @@ export default function BookingForm() {
         }
       }
       setPaymentDetails(updated);
+    } else if (section === "nominee") {
+      setNomineeDetails({ ...nomineeDetails, [field]: value });
     }
   };
 
@@ -172,19 +188,44 @@ export default function BookingForm() {
     <div className="min-h-screen bg-white py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          {/* <h1 className="text-4xl font-bold text-gray-800 mb-2">Ilfeo</h1> */}
-          <Image src="/logo.jpg" alt="REO Logo" width={150} height={150} className="mx-auto mb-2" />
-          <h2 className="text-2xl font-semibold text-[#db071d] mb-1">
+        <div className="text-center mb-8 space-y-2">
+          <Image
+            src="/logo.jpg"
+            alt="REO Logo"
+            width={150}
+            height={150}
+            className="mx-auto mb-2"
+          />
+
+          <h2 className="text-2xl font-semibold text-[#db071d]">
             REAL ESTATES OPPORTUNITY
           </h2>
+
           <h3 className="text-xl font-bold text-gray-700">
             CUSTOMER BOOKING FORM
           </h3>
-          <p className="text-gray-600 mt-2">
-            Office Address: RDB Boulevard, 8th Floor, EP & GP Complex, Salt
-            Lake, Kolkata – 700 091
+
+          {/* Bengaluru Address */}
+          <p className="mt-3 text-sm font-medium text-gray-700 inline-block px-4 py-1 rounded">
+            📍 1st Floor, AH45, Krishna Reddy Industrial Estate, Dooravani
+            Nagar, Bengaluru, Karnataka – 560016
           </p>
+
+          {/* Kolkata Address */}
+          <p className="mt-2 text-sm text-gray-700">
+            <span className="font-semibold text-[#db071d]">#</span> RDB
+            Boulevard, 8th Floor, EP & GP Complex, Salt Lake, Kolkata – 700 091
+          </p>
+
+          {/* Website */}
+          <a
+            href="https://www.reodevelop.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block mt-3 text-lg font-bold text-[#db071d] underline hover:text-red-700 transition-colors"
+          >
+            www.reodevelop.com
+          </a>
         </div>
 
         {/* Main Form Container - A4 Size Simulation */}
@@ -245,7 +286,7 @@ export default function BookingForm() {
                             handleInputChange(
                               "property",
                               "propertyType",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           required
@@ -289,7 +330,7 @@ export default function BookingForm() {
                           handleInputChange(
                             "property",
                             "projectLocation",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         required
@@ -320,7 +361,7 @@ export default function BookingForm() {
                         handleInputChange(
                           "customer",
                           "fullName",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       required
@@ -339,7 +380,7 @@ export default function BookingForm() {
                         handleInputChange(
                           "customer",
                           "fatherHusbandName",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
@@ -363,7 +404,7 @@ export default function BookingForm() {
                         handleInputChange(
                           "customer",
                           "mobileNumber",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       required
@@ -407,7 +448,7 @@ export default function BookingForm() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      PAN Number *
+                      PAN Number
                       {customerDetails.pan &&
                         !validatePAN(customerDetails.pan) && (
                           <span className="text-red-500 text-xs ml-2">
@@ -422,10 +463,9 @@ export default function BookingForm() {
                         handleInputChange(
                           "customer",
                           "pan",
-                          e.target.value.toUpperCase()
+                          e.target.value.toUpperCase(),
                         )
                       }
-                      required
                       className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400 ${
                         customerDetails.pan && !validatePAN(customerDetails.pan)
                           ? "border-red-500"
@@ -452,7 +492,7 @@ export default function BookingForm() {
                         handleInputChange(
                           "customer",
                           "aadhar",
-                          e.target.value.replace(/\D/g, "")
+                          e.target.value.replace(/\D/g, ""),
                         )
                       }
                       required
@@ -513,6 +553,140 @@ export default function BookingForm() {
                       />
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+            {/* Nominee Details */}
+            <div className="border-2 border-gray-800 p-6 rounded-lg">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center border-b pb-2">
+                Nominee Details
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Nominee Full Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nominee Full Name <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={nomineeDetails.fullName}
+                    onChange={(e) =>
+                      handleInputChange("nominee", "fullName", e.target.value)
+                    }
+                    required
+                    placeholder="Enter nominee full name"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md
+                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                   text-gray-800 placeholder:text-gray-400"
+                  />
+                </div>
+
+                {/* Relationship */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Relationship with Applicant{" "}
+                    <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={nomineeDetails.relationship}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "nominee",
+                        "relationship",
+                        e.target.value,
+                      )
+                    }
+                    required
+                    placeholder="Spouse / Son / Daughter / Father / Mother / Other"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md
+                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                   text-gray-800 placeholder:text-gray-400"
+                  />
+                </div>
+
+                {/* Date of Birth */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nominee Date of Birth{" "}
+                    <span className="text-gray-500 text-xs">
+                      (DD / MM / YYYY)
+                    </span>{" "}
+                    <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={nomineeDetails.dob}
+                    onChange={(e) =>
+                      handleInputChange("nominee", "dob", e.target.value)
+                    }
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md
+                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                   text-gray-800"
+                  />
+                </div>
+
+                {/* Nominee Mobile Number */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nominee Mobile Number{" "}
+                    <span className="text-red-600">*</span>
+                    {nomineeDetails.mobileNumber &&
+                      !validateMobileNumber(nomineeDetails.mobileNumber) && (
+                        <span className="text-red-500 text-xs ml-2">
+                          Must be 10 digits
+                        </span>
+                      )}
+                  </label>
+                  <input
+                    type="tel"
+                    value={nomineeDetails.mobileNumber}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "nominee",
+                        "mobileNumber",
+                        e.target.value,
+                      )
+                    }
+                    required
+                    maxLength="10"
+                    placeholder="Enter 10-digit mobile number"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md
+                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                   text-gray-800 placeholder:text-gray-400"
+                  />
+                </div>
+
+                {/* ID Proof */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nominee ID Proof Type{" "}
+                    <span className="text-red-600">*</span>
+                  </label>
+                  <select
+                    value={nomineeDetails.idProofType}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "nominee",
+                        "idProofType",
+                        e.target.value,
+                      )
+                    }
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md
+                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                   text-gray-800 bg-white"
+                  >
+                    <option value="" disabled>
+                      Select ID Proof
+                    </option>
+                    <option value="Aadhar">Aadhar Card</option>
+                    <option value="PAN">PAN Card</option>
+                    <option value="Voter ID">Voter ID</option>
+                    <option value="Passport">Passport</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -620,7 +794,7 @@ export default function BookingForm() {
                         handleInputChange(
                           "payment",
                           "paymentOption",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       className="w-4 h-4 text-[#db071d]"
@@ -637,7 +811,7 @@ export default function BookingForm() {
                         handleInputChange(
                           "payment",
                           "paymentOption",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       className="w-4 h-4 text-blue-600"
@@ -658,7 +832,7 @@ export default function BookingForm() {
                         handleInputChange(
                           "payment",
                           "emiTenure",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       className="w-full md:w-48 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 bg-white"
@@ -683,7 +857,7 @@ export default function BookingForm() {
                         handleInputChange(
                           "payment",
                           "totalPropertyValue",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
@@ -701,7 +875,7 @@ export default function BookingForm() {
                         handleInputChange(
                           "payment",
                           "tokenAdvance",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
