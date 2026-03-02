@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { supabaseBrowser } from "@/lib/supabase-browser";
 import MoneyReceiptTemplate from "@/components/MoneyReceiptTemplate";
 import { toWords } from "number-to-words";
 
@@ -340,37 +339,72 @@ export default function PaymentClient() {
   }, [showReceipt, bookingDetails.fullBookingData]);
 
   // Fetch booking details on component mount
+  // useEffect(() => {
+  //   const fetchBookingDetails = async () => {
+  //     if (bookingId) {
+  //       try {
+  //         const { data, error } = await supabaseBrowser
+  //           .from("bookings")
+  //           .select("*")
+  //           .eq("id", bookingId)
+  //           .single();
+
+  //         if (!error && data) {
+  //           setBookingDetails((prev) => ({
+  //             ...prev,
+  //             propertyType: data.property_type || "",
+  //             projectName: data.project_name || "",
+  //             totalAmount: data.total_property_value || "",
+  //             advanceAmount: data.token_advance || "",
+  //             fullBookingData: data,
+  //           }));
+
+  //           // Pre-fill amount with advance amount if available
+  //           if (data.token_advance) {
+  //             setPaymentForm((prev) => ({
+  //               ...prev,
+  //               amountPaid: data.token_advance,
+  //             }));
+  //           }
+  //         }
+  //       } catch (error) {
+  //         console.error("Error fetching booking details:", error);
+  //       }
+  //     }
+  //   };
+
+  //   fetchBookingDetails();
+  // }, [bookingId]);
   useEffect(() => {
     const fetchBookingDetails = async () => {
-      if (bookingId) {
-        try {
-          const { data, error } = await supabaseBrowser
-            .from("bookings")
-            .select("*")
-            .eq("id", bookingId)
-            .single();
+      if (!bookingId) return;
 
-          if (!error && data) {
-            setBookingDetails((prev) => ({
-              ...prev,
-              propertyType: data.property_type || "",
-              projectName: data.project_name || "",
-              totalAmount: data.total_property_value || "",
-              advanceAmount: data.token_advance || "",
-              fullBookingData: data,
-            }));
+      try {
+        const res = await fetch(`/api/bookings/${bookingId}`);
+        const data = await res.json();
 
-            // Pre-fill amount with advance amount if available
-            if (data.token_advance) {
-              setPaymentForm((prev) => ({
-                ...prev,
-                amountPaid: data.token_advance,
-              }));
-            }
-          }
-        } catch (error) {
-          console.error("Error fetching booking details:", error);
+        if (!res.ok) {
+          console.error(data.error);
+          return;
         }
+
+        setBookingDetails({
+          bookingId: data._id,
+          propertyType: data.property?.propertyType || "",
+          projectName: data.property?.projectName || "",
+          totalAmount: data.payment?.totalPropertyValue || "",
+          advanceAmount: data.payment?.tokenAdvance || "",
+          fullBookingData: data,
+        });
+
+        if (data.payment?.tokenAdvance) {
+          setPaymentForm((prev) => ({
+            ...prev,
+            amountPaid: data.payment.tokenAdvance,
+          }));
+        }
+      } catch (err) {
+        console.error("Error fetching booking:", err);
       }
     };
 
@@ -398,24 +432,34 @@ export default function PaymentClient() {
     setIsSubmitting(true);
 
     try {
-      // Update booking with payment details - ONLY columns that exist in your database
-      const { error } = await supabaseBrowser
-        .from("bookings")
-        .update({
-          amount_paid: Number(paymentForm.amountPaid),
-          transaction_id: paymentForm.transactionId,
-          payment_method: paymentForm.paymentMethod,
-          payment_status: "success",
-        })
-        .eq("id", bookingId);
+      const res = await fetch(`/api/bookings/${bookingId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amountPaid: Number(paymentForm.amountPaid),
+          transactionId: paymentForm.transactionId,
+          paymentMethod: paymentForm.paymentMethod,
+          paymentStatus: "success",
+        }),
+      });
 
-      if (error) throw error;
+      const data = await res.json();
 
-      // Generate and download receipt
-      // await generateReceiptPDF(paymentForm, bookingDetails, bookingId);
+      if (!res.ok) {
+        throw new Error(data.error || "Payment update failed");
+      }
+
+      // Update local state with latest booking
+      setBookingDetails((prev) => ({
+        ...prev,
+        fullBookingData: data,
+      }));
+
+      // Trigger receipt
       setShowReceipt(true);
 
-      // Show success popup
       setPopup({
         type: "success",
         message:
@@ -591,7 +635,7 @@ export default function PaymentClient() {
                   </div>
 
                   {/* Booking Info Display */}
-                  {bookingDetails.fullBookingData && (
+                  {/* {bookingDetails.fullBookingData && (
                     <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
                       <h4 className="font-semibold text-blue-800 mb-2">
                         Booking Summary
@@ -619,6 +663,44 @@ export default function PaymentClient() {
                             ₹
                             {Number(
                               bookingDetails.fullBookingData.token_advance || 0,
+                            ).toLocaleString("en-IN")}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )} */}
+                  {bookingDetails.fullBookingData && (
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                      <h4 className="font-semibold text-blue-800 mb-2">
+                        Booking Summary
+                      </h4>
+
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <span className="text-gray-600">Customer:</span>
+                          <span className="ml-2 font-medium">
+                            {bookingDetails.fullBookingData.customer?.fullName}
+                          </span>
+                        </div>
+
+                        <div>
+                          <span className="text-gray-600">Total Value:</span>
+                          <span className="ml-2 font-medium">
+                            ₹
+                            {Number(
+                              bookingDetails.fullBookingData.payment
+                                ?.totalPropertyValue || 0,
+                            ).toLocaleString("en-IN")}
+                          </span>
+                        </div>
+
+                        <div>
+                          <span className="text-gray-600">Advance Paid:</span>
+                          <span className="ml-2 font-medium">
+                            ₹
+                            {Number(
+                              bookingDetails.fullBookingData.payment
+                                ?.tokenAdvance || 0,
                             ).toLocaleString("en-IN")}
                           </span>
                         </div>
@@ -705,17 +787,32 @@ export default function PaymentClient() {
         {showReceipt && bookingDetails.fullBookingData && (
           <MoneyReceiptTemplate
             data={{
-              name: bookingDetails.fullBookingData.full_name,
+              name: bookingDetails.fullBookingData.customer?.fullName,
+
               amount: paymentForm.amountPaid,
-              amountWords: toWords(paymentForm.amountPaid).toUpperCase(),
-              projectName: bookingDetails.projectName,
-              propertyType: bookingDetails.propertyType,
-              location: bookingDetails.fullBookingData.project_location,
-              area: bookingDetails.fullBookingData.area,
+
+              amountWords: toWords(
+                Number(paymentForm.amountPaid) || 0,
+              ).toUpperCase(),
+
+              projectName: bookingDetails.fullBookingData.property?.projectName,
+
+              propertyType:
+                bookingDetails.fullBookingData.property?.propertyType,
+
+              location:
+                bookingDetails.fullBookingData.property?.projectLocation,
+
+              area: bookingDetails.fullBookingData.property?.area,
+
               transactionId: paymentForm.transactionId,
-              paymentMode: paymentForm.paymentMethod.toUpperCase(),
+
+              paymentMode: paymentForm.paymentMethod?.toUpperCase(),
+
               paymentDate: new Date().toLocaleDateString("en-IN"),
+
               receiptNo: paymentForm.transactionId,
+
               date: new Date().toLocaleDateString("en-IN"),
             }}
           />

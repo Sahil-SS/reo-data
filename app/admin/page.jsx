@@ -2,18 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-const BRAND = "#db071d";
-
-const STATUS_STYLE = {
-  pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
-  success: "bg-green-100 text-green-800 border-green-300",
-  failure: "bg-red-100 text-red-800 border-red-300",
-};
-
 export default function AdminPage() {
   const [bookings, setBookings] = useState([]);
+  const [expandedId, setExpandedId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [actionId, setActionId] = useState(null);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/immutability
@@ -21,153 +13,157 @@ export default function AdminPage() {
   }, []);
 
   const fetchBookings = async () => {
-    const res = await fetch("/api/admin/bookings");
+    const res = await fetch("/api/bookings");
     const data = await res.json();
     setBookings(data);
     setLoading(false);
   };
 
-  // 🔁 Optimistic update (NO black screen)
   const updateStatus = async (id, status) => {
-    setActionId(id);
-
-    setBookings((prev) =>
-      prev.map((b) =>
-        b.id === id ? { ...b, payment_status: status } : b
-      )
-    );
-
-    await fetch("/api/admin/bookings", {
+    await fetch(`/api/bookings/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, payment_status: status }),
+      body: JSON.stringify({
+        amountPaid: null,
+        transactionId: null,
+        paymentMethod: null,
+        paymentStatus: status,
+      }),
     });
 
-    setActionId(null);
+    fetchBookings();
   };
 
   const deleteBooking = async (id) => {
-    const ok = confirm("Are you sure you want to delete this booking?");
-    if (!ok) return;
+    if (!confirm("Delete this booking?")) return;
 
-    setBookings((prev) => prev.filter((b) => b.id !== id));
-
-    await fetch("/api/admin/bookings", {
+    await fetch(`/api/bookings/${id}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
     });
+
+    fetchBookings();
   };
 
-  if (loading) {
-    return <div className="p-8 text-lg">Loading bookings…</div>;
-  }
+  if (loading) return <div className="p-8">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <h1
-        className="text-3xl font-bold mb-6"
-        style={{ color: BRAND }}
-      >
-        Admin – Complete Bookings Table
+    <div className="min-h-screen bg-gray-100 p-8 text-gray-900">
+      <h1 className="text-3xl font-bold mb-8 text-[#db071d]">
+        Admin – Complete Booking Records
       </h1>
 
-      <div className="overflow-x-auto bg-white rounded-lg shadow">
-        <table className="min-w-[2200px] text-sm">
-          <thead style={{ backgroundColor: BRAND }} className="text-white">
-            <tr>
-              {[
-                "Name",
-                "Mobile",
-                "Email",
-                "PAN",
-                "Aadhar",
-                "Address",
-                "City",
-                "State",
-                "Project",
-                "Location",
-                "Property Type",
-                "Plot Size",
-                "Unit/Plot No",
-                "Area",
-                "Rate",
-                "Total Value",
-                "Advance",
-                "Remaining",
-                "Amount Paid",
-                "Transaction ID",
-                "Payment Status",
-                "Actions",
-              ].map((h) => (
-                <th key={h} className="p-3 text-left whitespace-nowrap">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
+      {bookings.map((b) => (
+        <div
+          key={b._id}
+          className="bg-white rounded-xl shadow mb-6 border"
+        >
+          {/* HEADER ROW */}
+          <div
+            className="p-4 flex justify-between items-center cursor-pointer bg-gray-50"
+            onClick={() =>
+              setExpandedId(expandedId === b._id ? null : b._id)
+            }
+          >
+            <div>
+              <p className="font-semibold text-lg">
+                {b.customer?.fullName}
+              </p>
+              <p className="text-sm text-gray-600">
+                {b.customer?.mobileNumber} | {b.customer?.email}
+              </p>
+            </div>
 
-          <tbody>
-            {bookings.map((b) => {
-              const status = b.payment_status || "pending";
-              return (
-                <tr key={b.id} className="border-b hover:bg-gray-50 text-black">
-                  <td className="p-3 font-medium">{b.full_name}</td>
-                  <td className="p-3">{b.mobile_number}</td>
-                  <td className="p-3">{b.email}</td>
-                  <td className="p-3">{b.pan}</td>
-                  <td className="p-3">{b.aadhar}</td>
-                  <td className="p-3">{b.address}</td>
-                  <td className="p-3">{b.city}</td>
-                  <td className="p-3">{b.state}</td>
-                  <td className="p-3">{b.project_name}</td>
-                  <td className="p-3">{b.project_location}</td>
-                  <td className="p-3">{b.property_type}</td>
-                  <td className="p-3">{b.plot_size}</td>
-                  <td className="p-3">{b.unit_plot_number}</td>
-                  <td className="p-3">{b.area}</td>
-                  <td className="p-3">{b.rate_per_sq_ft}</td>
-                  <td className="p-3">₹{b.total_property_value}</td>
-                  <td className="p-3">₹{b.token_advance}</td>
-                  <td className="p-3">₹{b.remaining_balance}</td>
-                  <td className="p-3">₹{b.amount_paid || "-"}</td>
-                  <td className="p-3">{b.transaction_id || "-"}</td>
+            <div className="text-right">
+              <p className="font-semibold">
+                ₹{b.payment?.totalPropertyValue}
+              </p>
+              <p className="text-sm capitalize">
+                Status:{" "}
+                <span className="font-semibold">
+                  {b.payment?.paymentStatus || "pending"}
+                </span>
+              </p>
+            </div>
+          </div>
 
-                  <td className="p-3">
-                    <span
-                      className={`px-3 py-1 rounded-full border text-xs font-semibold ${
-                        STATUS_STYLE[status]
-                      }`}
-                    >
-                      {status.toUpperCase()}
-                    </span>
-                  </td>
+          {/* EXPANDED SECTION */}
+          {expandedId === b._id && (
+            <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
 
-                  <td className="p-3 space-x-2 whitespace-nowrap">
-                    {["pending", "success", "failure"].map((s) => (
-                      <button
-                        key={s}
-                        disabled={actionId === b.id}
-                        onClick={() => updateStatus(b.id, s)}
-                        className="px-3 py-1 border rounded text-xs hover:bg-gray-100"
-                      >
-                        {s}
-                      </button>
-                    ))}
+              {/* CUSTOMER */}
+              <div>
+                <h3 className="font-bold mb-2 text-[#db071d]">
+                  Customer Details
+                </h3>
+                <p>Father/Husband: {b.customer?.fatherHusbandName}</p>
+                <p>PAN: {b.customer?.pan}</p>
+                <p>Aadhar: {b.customer?.aadhar}</p>
+                <p>Address: {b.customer?.address}</p>
+                <p>City: {b.customer?.city}</p>
+                <p>State: {b.customer?.state}</p>
+              </div>
 
-                    <button
-                      onClick={() => deleteBooking(b.id)}
-                      className="px-3 py-1 border rounded text-xs text-red-700 hover:bg-red-50"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+              {/* NOMINEE */}
+              <div>
+                <h3 className="font-bold mb-2 text-[#db071d]">
+                  Nominee Details
+                </h3>
+                <p>Name: {b.nominee?.fullName}</p>
+                <p>Relationship: {b.nominee?.relationship}</p>
+                <p>DOB: {new Date(b.nominee?.dob).toLocaleDateString()}</p>
+                <p>Mobile: {b.nominee?.mobileNumber}</p>
+                <p>ID Proof: {b.nominee?.idProofType}</p>
+              </div>
+
+              {/* PROPERTY + PAYMENT */}
+              <div>
+                <h3 className="font-bold mb-2 text-[#db071d]">
+                  Property & Payment
+                </h3>
+
+                <p>Project: {b.property?.projectName}</p>
+                <p>Location: {b.property?.projectLocation}</p>
+                <p>Type: {b.property?.propertyType}</p>
+                <p>Plot No: {b.property?.plotNo}</p>
+                <p>Area: {b.property?.area}</p>
+
+                <hr className="my-2" />
+
+                <p>Payment Option: {b.payment?.paymentOption}</p>
+                <p>EMI Tenure: {b.payment?.emiTenure}</p>
+                <p>Advance: ₹{b.payment?.tokenAdvance}</p>
+                <p>Remaining: ₹{b.payment?.remainingBalance}</p>
+                <p>Amount Paid: ₹{b.payment?.bookingAmountPaid}</p>
+                <p>Transaction: {b.payment?.transactionId}</p>
+              </div>
+
+              {/* ACTIONS */}
+              <div className="md:col-span-3 flex gap-4 pt-4">
+                <button
+                  onClick={() => updateStatus(b._id, "success")}
+                  className="px-4 py-2 bg-green-600 text-white rounded"
+                >
+                  Verify Payment
+                </button>
+
+                <button
+                  onClick={() => updateStatus(b._id, "failure")}
+                  className="px-4 py-2 bg-yellow-500 text-white rounded"
+                >
+                  Mark Failed
+                </button>
+
+                <button
+                  onClick={() => deleteBooking(b._id)}
+                  className="px-4 py-2 bg-red-600 text-white rounded"
+                >
+                  Delete Booking
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }

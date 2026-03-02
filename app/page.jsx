@@ -1,9 +1,7 @@
-// app/page.jsx
 "use client";
 
 import Link from "next/link";
 import { useState } from "react";
-import { supabaseBrowser } from "@/lib/supabase-browser";
 import Image from "next/image";
 
 export default function BookingForm() {
@@ -67,59 +65,48 @@ export default function BookingForm() {
     idProofType: "",
   });
 
-  const handleFinalSubmit = async () => {
-    if (!termsAccepted) return;
+const handleFinalSubmit = async () => {
+  if (!termsAccepted) return;
 
-    const payload = {
-      full_name: customerDetails.fullName,
-      father_husband_name: customerDetails.fatherHusbandName,
-      mobile_number: customerDetails.mobileNumber,
-      email: customerDetails.email,
-      pan: customerDetails.pan,
-      aadhar: customerDetails.aadhar,
-      address: customerDetails.address,
-      city: customerDetails.city,
-      state: customerDetails.state,
+  try {
+    const res = await fetch("/api/bookings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        customer: customerDetails,
+        nominee: nomineeDetails,
+        property: {
+          ...propertyDetails,
+          area: Number(propertyDetails.area),
+        },
+        payment: {
+          paymentOption: paymentDetails.paymentOption,
+          emiTenure: paymentDetails.emiTenure,
+          totalPropertyValue: Number(paymentDetails.totalPropertyValue),
+          tokenAdvance: Number(paymentDetails.tokenAdvance),
+          remainingBalance: Number(calculateRemainingBalance()),
+          ratePerSqFt: Number(paymentDetails.ratePerSqFt),
+          bookingAmountPaid: Number(paymentDetails.bookingAmountPaid),
+        },
+        termsAccepted: true,
+      }),
+    });
 
-      nominee_full_name: nomineeDetails.fullName,
-      nominee_relationship: nomineeDetails.relationship,
-      nominee_dob: nomineeDetails.dob,
-      nominee_mobile_number: nomineeDetails.mobileNumber,
-      nominee_id_proof_type: nomineeDetails.idProofType,
+    const data = await res.json();
 
-      project_name: propertyDetails.projectName,
-      project_location: propertyDetails.projectLocation,
-      property_type: propertyDetails.propertyType,
-      plot_size: propertyDetails.plotSize,
-      unit_plot_number: propertyDetails.unitPlotNumber,
-      plot_no: propertyDetails.plotNo,
-      area: Number(propertyDetails.area),
-
-      payment_option: paymentDetails.paymentOption,
-      emi_tenure: paymentDetails.emiTenure,
-      total_property_value: Number(paymentDetails.totalPropertyValue),
-      token_advance: Number(paymentDetails.tokenAdvance),
-      remaining_balance: calculateRemainingBalance(),
-
-      terms_accepted: true,
-    };
-
-    const { data, error } = await supabaseBrowser
-      .from("bookings")
-      .insert(payload)
-      .select()
-      .single();
-
-    if (error) {
-      console.error(error);
-      alert("Booking failed");
+    if (!res.ok) {
+      alert(data.error || "Booking failed");
       return;
     }
 
-    // redirect to payment with bookingId
+    // IMPORTANT: Mongo returns _id not id
     // eslint-disable-next-line react-hooks/immutability
-    window.location.href = `/payment?bookingId=${data.id}`;
-  };
+    window.location.href = `/payment?bookingId=${data._id}`;
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong");
+  }
+};
 
   // Calculate remaining balance
   const calculateRemainingBalance = () => {
