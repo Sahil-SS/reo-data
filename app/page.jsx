@@ -770,11 +770,11 @@ export default function BookingForm() {
                 Payment Details
               </h2>
               {/* Silver Joining Amount */}
-              <div className="mb-6 text-center">
+              {/* <div className="mb-6 text-center">
                 <span className="text-xl font-bold text-[#db071d]">
                   Silver Joining Amount = ₹2,31,300 /-
                 </span>
-              </div>
+              </div> */}
 
               {/* Payment Option Selection */}
               <div className="mb-6">
@@ -902,9 +902,6 @@ export default function BookingForm() {
                   <div className="w-4 h-4 mt-1 flex items-center justify-center">
                     <div className="w-2 h-2 bg-green-600 rounded-full"></div>
                   </div>
-                  <span className="ml-2 text-green-600 font-medium">
-                    Plot switching options available.
-                  </span>
                 </div>
                 {/* <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
                   <div>
