@@ -47,10 +47,10 @@ export default function MoneyReceiptTemplate({ data }) {
         {/* <div><span>Project Name</span><span>{data.projectName}</span></div> */}
         {/* <div><span>Property Type</span><span>{data.propertyType}</span></div> */}
         {/* <div><span>Location</span><span>{data.location}</span></div> */}
-        <div>
+        {/* <div>
           <span>Area</span>
           <span>{data.area}</span>
-        </div>
+        </div> */}
         <div>
           <span>Transaction No</span>
           <span>{data.transactionId}</span>
@@ -68,20 +68,17 @@ export default function MoneyReceiptTemplate({ data }) {
       {/* NOTE */}
       <div className="receipt-note-box">
         <p>
-          An Agreement to Sell will be signed between both parties within 30
-          days from the date of this receipt, upon payment of 10% of the total
-          agreed sale price, after adjusting the above token advance. This
-          amount is received as booking/advance payment and will be adjusted
-          against the total sale value, subject to company terms and conditions.
+          The amount received is towards the Signature Associate Membership
+          Program and shall not be treated as a Fixed Deposit, Investment
+          Scheme, Loan Arrangement, Financial Product, Profit-Sharing
+          Arrangement, or Interest-Bearing Instrument. Membership benefits and
+          adjustments shall be governed by the company&apos;s prevailing
+          policies and terms & conditions.
         </p>
       </div>
 
       {/* FOOTER */}
       <div className="receipt-footer">
-        <div className="receipt-signature">
-          <p>Authorized Signatory</p>
-          <span>Executant (Seller)</span>
-        </div>
         <p className="receipt-disclaimer">
           This is a computer-generated receipt; hence, no signature is required.
         </p>
