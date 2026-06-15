@@ -496,7 +496,7 @@ export default function PaymentClient() {
           className="text-center mb-8 bg-white rounded-xl shadow-lg p-6"
         >
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            Complete Your Booking Payment
+            COMPLETE YOUR ASSOCIATION MEMBERSHIP 
           </h1>
         </motion.div>
 
@@ -541,7 +541,7 @@ export default function PaymentClient() {
           <div className="md:w-1/2 bg-white text-gray-800 flex flex-col justify-start rounded-r-xl overflow-hidden">
             <div className="p-6 md:p-8">
               {/* Logo */}
-              <div className="flex justify-center mb-6">
+              {/* <div className="flex justify-center mb-6">
                 <div className="text-center">
                   <Image
                     src="/logo.jpg"
@@ -554,7 +554,7 @@ export default function PaymentClient() {
                     REAL ESTATES OPPORTUNITY
                   </p>
                 </div>
-              </div>
+              </div> */}
 
               <h3 className="text-2xl font-bold text-center text-[#db071d] mb-2">
                 Payment Details

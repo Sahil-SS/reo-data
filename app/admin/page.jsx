@@ -20,6 +20,7 @@ export default function AdminPage() {
   };
 
   const updateStatus = async (id, status) => {
+    alert(`Mark booking as ${status}?`);
     await fetch(`/api/bookings/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -53,30 +54,21 @@ export default function AdminPage() {
       </h1>
 
       {bookings.map((b) => (
-        <div
-          key={b._id}
-          className="bg-white rounded-xl shadow mb-6 border"
-        >
+        <div key={b._id} className="bg-white rounded-xl shadow mb-6 border">
           {/* HEADER ROW */}
           <div
             className="p-4 flex justify-between items-center cursor-pointer bg-gray-50"
-            onClick={() =>
-              setExpandedId(expandedId === b._id ? null : b._id)
-            }
+            onClick={() => setExpandedId(expandedId === b._id ? null : b._id)}
           >
             <div>
-              <p className="font-semibold text-lg">
-                {b.customer?.fullName}
-              </p>
+              <p className="font-semibold text-lg">{b.customer?.fullName}</p>
               <p className="text-sm text-gray-600">
                 {b.customer?.mobileNumber} | {b.customer?.email}
               </p>
             </div>
 
             <div className="text-right">
-              <p className="font-semibold">
-                ₹{b.payment?.totalPropertyValue}
-              </p>
+              <p className="font-semibold">₹{b.payment?.totalPropertyValue}</p>
               <p className="text-sm capitalize">
                 Status:{" "}
                 <span className="font-semibold">
@@ -89,7 +81,6 @@ export default function AdminPage() {
           {/* EXPANDED SECTION */}
           {expandedId === b._id && (
             <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-
               {/* CUSTOMER */}
               <div>
                 <h3 className="font-bold mb-2 text-[#db071d]">
@@ -141,21 +132,21 @@ export default function AdminPage() {
               <div className="md:col-span-3 flex gap-4 pt-4">
                 <button
                   onClick={() => updateStatus(b._id, "success")}
-                  className="px-4 py-2 bg-green-600 text-white rounded"
+                  className="px-4 py-2 bg-green-600 text-white rounded cursor-pointer"
                 >
                   Verify Payment
                 </button>
 
                 <button
                   onClick={() => updateStatus(b._id, "failure")}
-                  className="px-4 py-2 bg-yellow-500 text-white rounded"
+                  className="px-4 py-2 bg-yellow-500 text-white rounded cursor-pointer"
                 >
                   Mark Failed
                 </button>
 
                 <button
                   onClick={() => deleteBooking(b._id)}
-                  className="px-4 py-2 bg-red-600 text-white rounded"
+                  className="px-4 py-2 bg-red-600 text-white rounded cursor-pointer"
                 >
                   Delete Booking
                 </button>

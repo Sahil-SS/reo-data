@@ -65,48 +65,48 @@ export default function BookingForm() {
     idProofType: "",
   });
 
-const handleFinalSubmit = async () => {
-  if (!termsAccepted) return;
+  const handleFinalSubmit = async () => {
+    if (!termsAccepted) return;
 
-  try {
-    const res = await fetch("/api/bookings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        customer: customerDetails,
-        nominee: nomineeDetails,
-        property: {
-          ...propertyDetails,
-          area: Number(propertyDetails.area),
-        },
-        payment: {
-          paymentOption: paymentDetails.paymentOption,
-          emiTenure: paymentDetails.emiTenure,
-          totalPropertyValue: Number(paymentDetails.totalPropertyValue),
-          tokenAdvance: Number(paymentDetails.tokenAdvance),
-          remainingBalance: Number(calculateRemainingBalance()),
-          ratePerSqFt: Number(paymentDetails.ratePerSqFt),
-          bookingAmountPaid: Number(paymentDetails.bookingAmountPaid),
-        },
-        termsAccepted: true,
-      }),
-    });
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer: customerDetails,
+          nominee: nomineeDetails,
+          property: {
+            ...propertyDetails,
+            area: Number(propertyDetails.area),
+          },
+          payment: {
+            paymentOption: paymentDetails.paymentOption,
+            emiTenure: paymentDetails.emiTenure,
+            totalPropertyValue: Number(paymentDetails.totalPropertyValue),
+            tokenAdvance: Number(paymentDetails.tokenAdvance),
+            remainingBalance: Number(calculateRemainingBalance()),
+            ratePerSqFt: Number(paymentDetails.ratePerSqFt),
+            bookingAmountPaid: Number(paymentDetails.bookingAmountPaid),
+          },
+          termsAccepted: true,
+        }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      alert(data.error || "Booking failed");
-      return;
+      if (!res.ok) {
+        alert(data.error || "Booking failed");
+        return;
+      }
+
+      // IMPORTANT: Mongo returns _id not id
+      // eslint-disable-next-line react-hooks/immutability
+      window.location.href = `/payment?bookingId=${data._id}`;
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong");
     }
-
-    // IMPORTANT: Mongo returns _id not id
-    // eslint-disable-next-line react-hooks/immutability
-    window.location.href = `/payment?bookingId=${data._id}`;
-  } catch (err) {
-    console.error(err);
-    alert("Something went wrong");
-  }
-};
+  };
 
   // Calculate remaining balance
   const calculateRemainingBalance = () => {
@@ -177,56 +177,61 @@ const handleFinalSubmit = async () => {
         {/* Header */}
         <div className="text-center mb-8 space-y-2">
           <Image
-            src="/logo.jpg"
+            src="/logo.jpeg"
             alt="REO Logo"
-            width={150}
-            height={150}
+            width={250}
+            height={250}
             className="mx-auto mb-2"
           />
 
-          <h2 className="text-2xl font-semibold text-[#db071d]">
+          {/* <h2 className="text-2xl font-semibold text-[#db071d]">
             REAL ESTATES OPPORTUNITY
-          </h2>
+          </h2> */}
 
           <h3 className="text-xl font-bold text-gray-700">
-            CUSTOMER BOOKING FORM
+            ASSOCIATE REGISTRATION FORM
           </h3>
 
+          {/* Kolkata Address */}
+          <p className="mt-1 text-sm font-medium text-gray-700 inline-block px-4  rounded">
+            📍 101, 1st Floor, Anantham Building, Surendra Singh Compound, Kokar
+            Chowk, Kokar, Ranchi - 834001
+          </p>
           {/* Bengaluru Address */}
-          <p className="mt-3 text-sm font-medium text-gray-700 inline-block px-4 py-1 rounded">
+          <p className="mt-1 text-sm font-medium text-gray-700 inline-block px-4  rounded">
             📍 1st Floor, AH45, Krishna Reddy Industrial Estate, Dooravani
             Nagar, Bengaluru, Karnataka – 560016
           </p>
 
           {/* Kolkata Address */}
-          <p className="mt-2 text-sm text-gray-700">
+          <p className="mt-1 text-sm text-gray-700">
             <span className="font-semibold text-[#db071d]">#</span> RDB
             Boulevard, 8th Floor, EP & GP Complex, Salt Lake, Kolkata – 700 091
           </p>
 
           {/* Website */}
-          <a
+          {/* <a
             href="https://www.reodevelop.com"
             target="_blank"
             rel="noopener noreferrer"
             className="block mt-3 text-lg font-bold text-[#db071d] underline hover:text-red-700 transition-colors"
           >
             www.reodevelop.com
-          </a>
+          </a> */}
         </div>
 
         {/* Main Form Container - A4 Size Simulation */}
         <div className="bg-white shadow-2xl rounded-lg border border-gray-300 p-8 mb-8">
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Project Details */}
-            <div className="border-2 border-gray-800 p-6 rounded-lg">
+            {/* <div className="border-2 border-gray-800 p-6 rounded-lg">
               <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center border-b pb-2">
                 Project Details
               </h2>
               <div className="grid grid-cols-1 gap-6">
                 <div>
                   <div className="space-y-4">
-                    {/* <div>
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Select Project *
                       </label>
@@ -260,7 +265,7 @@ const handleFinalSubmit = async () => {
                           </svg>
                         </div>
                       </div>
-                    </div> */}
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -285,7 +290,7 @@ const handleFinalSubmit = async () => {
                           <option value="Villa">Villa</option>
                         </select>
                       </div>
-                      {/* <div>
+                      <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Plot Size *
                         </label>
@@ -303,7 +308,7 @@ const handleFinalSubmit = async () => {
                           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
                           placeholder="Enter plot size"
                         />
-                      </div> */}
+                      </div>
                     </div>
 
                     <div>
@@ -328,12 +333,12 @@ const handleFinalSubmit = async () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Customer Details */}
             <div className="border-2 border-gray-800 p-6 rounded-lg">
               <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center border-b pb-2">
-                Customer Details
+                Associate Details
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
@@ -764,6 +769,12 @@ const handleFinalSubmit = async () => {
               <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center border-b pb-2">
                 Payment Details
               </h2>
+              {/* Silver Joining Amount */}
+              <div className="mb-6 text-center">
+                <span className="text-xl font-bold text-[#db071d]">
+                  Silver Joining Amount = ₹2,31,300 /-
+                </span>
+              </div>
 
               {/* Payment Option Selection */}
               <div className="mb-6">
@@ -831,96 +842,37 @@ const handleFinalSubmit = async () => {
                 )}
               </div>
 
+              {/* Payment Amount Section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Total Property Value (₹)
-                    </label>
-                    <input
-                      type="number"
-                      value={paymentDetails.totalPropertyValue}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "payment",
-                          "totalPropertyValue",
-                          e.target.value,
-                        )
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
-                      placeholder="Enter total value"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Token Advance Amount (₹)
-                    </label>
-                    <input
-                      type="number"
-                      value={paymentDetails.tokenAdvance}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "payment",
-                          "tokenAdvance",
-                          e.target.value,
-                        )
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
-                      placeholder="Enter advance amount"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Remaining Balance (₹)
-                    </label>
-                    <input
-                      type="text"
-                      value={calculateRemainingBalance()}
-                      readOnly
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-800"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Paying Amount (₹)
+                  </label>
+
+                  <input
+                    type="number"
+                    value={paymentDetails.tokenAdvance}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "payment",
+                        "tokenAdvance",
+                        e.target.value,
+                      )
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#db071d] focus:border-[#db071d] text-gray-800 placeholder:text-gray-400"
+                    placeholder="Enter paying amount"
+                  />
                 </div>
-                <div className="space-y-4">
-                  {/* <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Booking Amount Paid (₹)
-                    </label>
-                    <input
-                      type="number"
-                      value={paymentDetails.bookingAmountPaid}
-                      onChange={(e) => handleInputChange("payment", "bookingAmountPaid", e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
-                      placeholder="Enter booking amount"
-                    />
-                  </div> */}
-                  {/* <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Payment Mode
-                    </label>
-                    <select
-                      value={paymentDetails.paymentMode}
-                      onChange={(e) => handleInputChange("payment", "paymentMode", e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 bg-white"
-                    >
-                      <option value="UPI">UPI</option>
-                      <option value="Debit Card">Debit Card</option>
-                      <option value="Credit Card">Credit Card</option>
-                      <option value="Net Banking">Net Banking</option>
-                    </select>
-                  </div> */}
-                  {/* <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Transaction / Cheque No.
-                    </label>
-                    <input
-                      type="text"
-                      value={paymentDetails.transactionNumber}
-                      onChange={(e) => handleInputChange("payment", "transactionNumber", e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder:text-gray-400"
-                      placeholder="Enter transaction/cheque number"
-                    />
-                  </div> */}
+
+                <div className="flex items-end">
+                  <div className="w-full bg-gray-100 border border-gray-300 rounded-md px-4 py-2">
+                    <span className="text-sm font-medium text-gray-700">
+                      Paying Amount:
+                    </span>
+                    <span className="ml-2 text-gray-800 font-semibold">
+                      ₹{paymentDetails.tokenAdvance || 0}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -943,7 +895,7 @@ const handleFinalSubmit = async () => {
                   <label htmlFor="terms" className="ml-2 text-gray-700">
                     I certify that all information provided in this application
                     is correct. By submitting this form, I formally accept the
-                    terms and conditions associated with the Reo Project
+                    terms and conditions associated with the Signature
                   </label>
                 </div>
                 <div className="flex items-start">
@@ -979,8 +931,8 @@ const handleFinalSubmit = async () => {
                 onClick={handleFinalSubmit}
                 className={`px-12 py-4 text-white font-bold text-lg rounded-lg transition-all duration-300 shadow-lg ${
                   termsAccepted
-                    ? "bg-gradient-to-r from-[#db071d] to-[#db071d] hover:shadow-xl cursor-pointer"
-                    : "bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed opacity-70"
+                    ? "bg-linear-to-r from-[#db071d] to-[#db071d] hover:shadow-xl cursor-pointer"
+                    : "bg-linear-to-r from-gray-400 to-gray-500 cursor-not-allowed opacity-70"
                 }`}
               >
                 {termsAccepted
