@@ -898,11 +898,6 @@ export default function BookingForm() {
                     terms and conditions associated with the Signature
                   </label>
                 </div>
-                <div className="flex items-start">
-                  <div className="w-4 h-4 mt-1 flex items-center justify-center">
-                    <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  </div>
-                </div>
                 {/* <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
